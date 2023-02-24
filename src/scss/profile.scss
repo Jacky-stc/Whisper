@@ -1,0 +1,165 @@
+.profile {
+  flex: 1;
+  height: auto;
+  margin-left: 250px;
+  position: relative;
+  .profile-cover-photo {
+    width: 100%;
+    height: 240px;
+    background-image: url("https://images.pexels.com/photos/6954009/pexels-photo-6954009.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1");
+    background-size: cover;
+    background-position: center;
+  }
+  .profile-personal-photo {
+    z-index: 1;
+    position: absolute;
+    top: 170px;
+    left: 3%;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 5px solid #e8dfd2;
+    background-image: url("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .profile-content {
+    border-bottom: 1px solid #888;
+    width: 100%;
+    height: auto;
+    padding-bottom: 15px;
+    .editbar {
+      box-sizing: border-box;
+      width: 100%;
+      height: 80px;
+      padding: 20px;
+      display: flex;
+      justify-content: end;
+      align-items: center;
+    }
+    .profile-name {
+      font-size: 28px;
+      margin-left: 20px;
+    }
+    .profile-account {
+      font-size: 18px;
+      margin-left: 20px;
+      color: #666;
+    }
+    p {
+      margin-left: 20px;
+    }
+  }
+}
+.profile-edit-block {
+  z-index: 12;
+  position: fixed;
+  width: 600px;
+  height: 700px;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 15%;
+  border: 1px solid #666;
+  border-radius: 12px;
+  background-color: #e8dfd2;
+  .profile-edit-header {
+    width: 100%;
+    height: 60px;
+    border-radius: 12px 12px 0 0;
+    padding: 10px;
+    box-sizing: border-box;
+    .close-btn {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      margin: 3px 40px 0px 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      &:hover {
+        background-color: rgba(136, 136, 136, 0.6);
+      }
+    }
+    span {
+      font-size: 28px;
+      vertical-align: baseline;
+    }
+    button {
+      border: none;
+      border-radius: 99px;
+      padding: 10px 20px;
+      float: right;
+      user-select: none;
+      cursor: pointer;
+      &:hover {
+        filter: brightness(0.8);
+      }
+    }
+  }
+  .profile-edit-cover-photo {
+    width: 100%;
+    height: 200px;
+    background-image: url("https://images.pexels.com/photos/6954009/pexels-photo-6954009.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1");
+    background-size: cover;
+    background-position: center;
+  }
+  .profile-edit-personal-photo {
+    position: absolute;
+    top: 28%;
+    left: 3%;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 5px solid #e8dfd2;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    .personal-photo-upload {
+      display: none;
+    }
+  }
+  .edit {
+    box-sizing: border-box;
+    padding: 5px 10px;
+    width: 93%;
+    margin: 30px auto;
+    border: 1px solid #000;
+    border-radius: 4px;
+    input {
+      box-sizing: border-box;
+      width: 100%;
+      background: none;
+      border: none;
+      outline: none;
+    }
+  }
+  .name {
+    margin-top: 90px;
+  }
+  .bio {
+    textarea {
+      resize: none;
+      box-sizing: border-box;
+      width: 100%;
+
+      border: none;
+      background: none;
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+}
+.profile-loader-wrapper {
+  box-sizing: border-box;
+  position: absolute;
+  width: 100%;
+  height: 200px;
+  padding: 130px 50% 0 50%;
+  background-color: #e8dfd2;
+}
+@media (max-width: 1200px) {
+  .profile {
+    margin-left: 200px;
+  }
+}

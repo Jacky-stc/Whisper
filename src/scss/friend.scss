@@ -1,0 +1,27 @@
+.friend {
+  width: 350px;
+  height: 120%;
+  border-left: 1px solid #8c969b;
+  .search-bar {
+    z-index: 1;
+    position: relative;
+    box-sizing: border-box;
+    margin: 10px;
+    border-radius: 150px;
+    background-color: rgba(136, 136, 136, 0.3);
+    width: 100%;
+    .search-icon-container {
+      display: inline-block;
+      vertical-align: top;
+    }
+    svg {
+      fill: #666;
+    }
+    input {
+      background: none;
+      outline: none;
+      border: none;
+      margin: 10px 0 0 0px;
+    }
+  }
+}

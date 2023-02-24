@@ -1,0 +1,30 @@
+.popup {
+  z-index: 2;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+}
+.overlay {
+  z-index: 2;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+// .content {
+//   z-index: 1;
+//   position: fixed;
+//   width: 400px;
+//   height: 600px;
+//   top: 10%;
+//   left: 50%;
+//   transform: translateX(-50%);
+//   background-color: white;
+//   border-radius: 20px;
+//   padding: 30px;
+// }

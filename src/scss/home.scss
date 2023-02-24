@@ -1,0 +1,100 @@
+body {
+  background-image: none;
+  background-color: #e8ccac;
+}
+main {
+  width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  color: #000;
+}
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+header {
+  width: 250px;
+  position: fixed;
+  height: 100%;
+  border-right: 1px solid #666;
+  font-size: 24px;
+  .navbar {
+    margin-top: 80px;
+    float: right;
+    nav {
+      display: flex;
+      flex-direction: column;
+      a {
+        width: 250px;
+        margin: 10px 0;
+        text-decoration: none;
+        color: #000;
+        cursor: pointer;
+        &:visited {
+          color: #000;
+        }
+        div {
+          width: fit-content;
+          box-sizing: border-box;
+          padding: 10px 20px;
+          border-radius: 200px;
+          &:hover {
+            background-color: #e8ccac;
+            filter: brightness(0.8);
+          }
+          &:active {
+            background-color: #e8ccac;
+            filter: brightness(0.7);
+          }
+        }
+      }
+    }
+  }
+}
+
+.logout {
+  box-sizing: border-box;
+  position: absolute;
+  bottom: 3%;
+  padding: 10px 20px;
+  height: 40px;
+  margin-left: 5px;
+  border-radius: 200px;
+  cursor: pointer;
+  &:hover {
+    background-color: #e8ccac;
+    filter: brightness(0.8);
+  }
+  &:active {
+    background-color: #e8ccac;
+    filter: brightness(0.7);
+  }
+  span {
+    margin-left: 5px;
+  }
+}
+svg {
+  display: inline-block;
+  width: 40px;
+  height: 30px;
+}
+@media (max-width: 1200px) {
+  main {
+    width: 90%;
+  }
+  header {
+    width: 200px;
+  }
+  .post {
+    margin-left: 200px;
+  }
+  .friend {
+    width: 250px;
+    .search-icon-container {
+      input {
+        width: 70%;
+      }
+    }
+  }
+}

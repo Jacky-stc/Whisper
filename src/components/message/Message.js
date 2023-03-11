@@ -11,16 +11,15 @@ import { AuthContext } from "../../context/AuthContext";
 import { db } from "../../firebase";
 import { Chat } from "./Chat";
 import { User } from "./User";
-
 import { ChatContext } from "../../context/MessageContext";
 import { Input } from "./Input";
+import "../../scss/message.scss";
 
 export function Message() {
   const [chatUserList, setChatUserList] = useState();
   const [chatContent, setChatContent] = useState("");
   const { currentUser } = useContext(AuthContext);
   const { data } = useContext(ChatContext);
-
   const chatRef = useRef();
   useEffect(() => {
     const getChatUserList = async () => {
@@ -44,15 +43,16 @@ export function Message() {
     );
     const getChat = async () => {
       const unsub = onSnapshot(q, (snapshot) => {
-        console.log(snapshot);
-        const chatlist = [];
-        snapshot.empty == true
-          ? setChatContent(null)
-          : snapshot.forEach((doc) => {
-              const data = { id: doc.id, data: doc.data() };
-              chatlist.push(data);
-            });
-        setChatContent(chatlist);
+        if (!snapshot.metadata.hasPendingWrites) {
+          const chatlist = [];
+          snapshot.empty == true
+            ? setChatContent(null)
+            : snapshot.forEach((doc) => {
+                const data = { id: doc.id, data: doc.data() };
+                chatlist.push(data);
+              });
+          setChatContent(chatlist);
+        }
       });
       return () => {
         unsub();
@@ -61,7 +61,7 @@ export function Message() {
     getChat();
   }, [data.chatId]);
   useEffect(() => {
-    chatRef.current?.scrollIntoView();
+    chatRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatContent]);
   const Wrapper = styled.div`
     flex: 1;
@@ -70,23 +70,6 @@ export function Message() {
     @media (max-width: 1200px) : {
       margin-left: 200px;
     }
-  `;
-  const Container = styled.div`
-    display: inline-block;
-    height: 100%;
-    width: 380px;
-    box-sizing: border-box;
-    padding: 0px 10px;
-    border-right: 1px solid #666;
-  `;
-  const Message = styled.div`
-  position:relative;
-  display: inline-block;
-  width: 520px;
-  height: 100%;
-  vertical-align: top;
-  border-right: 1px solid #666;
-}
   `;
   const Title = styled.div`
     width: 100%;
@@ -114,27 +97,9 @@ export function Message() {
     padding: 30px;
     border-bottom: 1px solid #666;
     font-size: 24px;
-  `;
-  const Outer = styled.div`
-    position: relative;
-    overflow-y: auto;
-    height: 85%;
-    scrollbar-width: thin;
-    scrollbar-color: #aaa #ddd;
-    &::-webkit-scrollbar {
-      width: 7px;
-      height: 15px;
-    }
-    &::-webkit-scrollbar-button {
-      background: transparent;
-    }
-    &::-webkit-scrollbar-track-piece {
-      background: transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-      border-radius: 4px;
-      background-color: #aaa;
-      border: 1px solid slategrey;
+    @media (max-width: 500px), (max-height: 900px) {
+      height: 8%;
+      padding: 4%;
     }
   `;
   const ChatBottom = styled.div`
@@ -154,20 +119,54 @@ export function Message() {
       color: #555;
     }
   `;
-
+  const Back = styled.div`
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    margin-left: -15px;
+    cursor: pointer;
+    &:hover {
+      background-color: #ddd;
+    }
+    &:active {
+      background-color: #aaa;
+    }
+    @media (max-width: 1020px) {
+      display: inline-flex;
+    }
+  `;
   return (
-    <Wrapper>
-      <Container>
+    <div className="message-wrapper">
+      <div className="user-container">
         <Title>Messages</Title>
         <SearchBar placeholder="Search Direct Message"></SearchBar>
         {chatUserList &&
           Object.entries(chatUserList)
             .sort((a, b) => b[1].date - a[1].date)
             .map((user) => <User key={user[0]} user={user} />)}
-      </Container>
-      <Message>
+      </div>
+      <div className="message">
         {data.user.displayName && (
-          <ChatTitle>{data.user.displayName}</ChatTitle>
+          <ChatTitle>
+            <Back
+              onClick={() => {
+                document
+                  .querySelector(".user-container")
+                  .classList.remove("hide");
+                document.querySelector(".message").classList.remove("show");
+              }}
+            >
+              <svg viewBox="-2 -5 30 30">
+                <g>
+                  <path d="M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z"></path>
+                </g>
+              </svg>
+            </Back>
+            {data.user.displayName}
+          </ChatTitle>
         )}
         {!data.user.displayName && (
           <MessageHint>
@@ -181,16 +180,16 @@ export function Message() {
 
         {chatContent && (
           <>
-            <Outer>
+            <div className="outer">
               {chatContent.map((chat) => (
                 <Chat chat={chat} key={chat.id} />
               ))}
               <ChatBottom ref={chatRef}></ChatBottom>
-            </Outer>
+            </div>
           </>
         )}
         {data.user.displayName && <Input></Input>}
-      </Message>
-    </Wrapper>
+      </div>
+    </div>
   );
 }

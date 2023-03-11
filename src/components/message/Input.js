@@ -28,6 +28,7 @@ export const Input = () => {
         message: textMessage,
         img: img,
         date: serverTimestamp(),
+        read: false,
       });
       const res = await getDoc(doc(db, "userChats", data.user.uid));
       res.data() == undefined ||
@@ -72,16 +73,31 @@ export const Input = () => {
     border-radius: 12px;
     border: 1px solid #666;
     background-color: #e8ccac;
+    @media (max-width: 1020px) {
+      width: 95%;
+    }
+    @media (max-width: 500px) {
+      bottom: 5%;
+      @media (max-height: 900px) {
+        bottom: 7%;
+      }
+    }
   `;
   const Input = styled.input`
     box-sizing: border-box;
     padding: 20px;
-    width: 75%;
+    width: 85%;
     height: 40px;
     background: none;
     border: none;
     &:focus {
       outline: none;
+    }
+    @media (max-width: 740px) {
+      width: 80%;
+    }
+    @media (max-width: 500px) {
+      width: 76%;
     }
   `;
   const Send = styled.button`
@@ -117,14 +133,21 @@ export const Input = () => {
     border-radius: 12px;
   `;
   return (
-    <InputWrapper>
-      {/* <ImageWrapper></ImageWrapper> */}
-      <IconWrapper>
+    <div className="message-input-wrapper">
+      {/* <IconWrapper>
         <Icon.postImageIcon></Icon.postImageIcon>
-      </IconWrapper>
-      <Input placeholder="Start a new message" ref={ref}></Input>
+      </IconWrapper> */}
+      <Input
+        placeholder="Start a new message"
+        ref={ref}
+        onKeyDown={(e) => {
+          if (e.code == "Enter") {
+            handleSend();
+          }
+        }}
+      ></Input>
       <Send onClick={handleSend}>Send</Send>
       <input type={"file"} style={{ display: "none" }}></input>
-    </InputWrapper>
+    </div>
   );
 };

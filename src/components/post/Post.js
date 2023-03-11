@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import "../../scss/post.scss";
 import "../../scss/postarea.scss";
 import { PostElement } from "./PostElement";
@@ -20,12 +26,20 @@ import styled from "@emotion/styled";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import * as icon from "../icon/icon.js";
-import { Image, Layer, Stage } from "react-konva";
-import useImage from "use-image";
 import { useDispatch, useSelector } from "react-redux";
 import { addPostList } from "../../store/postListSlice";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+import Cropper from "react-easy-crop";
+import { Sidebar } from "../Sidebar";
+
+function readFile(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(reader.result), false);
+    reader.readAsDataURL(file);
+  });
+}
 
 export function Post({ postIsLoading }) {
   const postList = useSelector((state) => state.postList.postList);
@@ -33,21 +47,16 @@ export function Post({ postIsLoading }) {
   const { currentUser } = useContext(AuthContext);
   const textRef = useRef();
   const [postImageUpload, setPostImageUpload] = useState();
+  const [imageSrc, setImageSrc] = useState();
   const [value, setValue] = useState("");
   const [open, setOpen] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const [showPoll, setShowPoll] = useState(false);
-  const postImage = document.querySelector(".post-image");
-  const stageRef = useRef();
-  function previewImage(image) {
-    const file = image;
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.addEventListener("load", () => {
-      const postImage = document.querySelector(".post-image");
-      postImage.src = reader.result;
-    });
-  }
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState();
+  const imageRef = useRef();
+  console.log(crop);
   window.addEventListener(
     "click",
     () => {
@@ -59,8 +68,19 @@ export function Post({ postIsLoading }) {
     false
   );
   useEffect(() => {
+    const setPost = () => {
+      const post = document.querySelector(".post");
+      post.style.height = document.body.scrollHeight + "px";
+    };
+    if (document.readyState === "complete") {
+      setPost();
+    } else {
+      window.addEventListener("load", setPost);
+      return () => window.removeEventListener("load", setPost);
+    }
+  }, [document.body.scrollHeight]);
+  useEffect(() => {
     if (textRef) {
-      console.log(textRef.current.style.height);
       textRef.current.style.height = "0px";
       const scrollHeight = textRef.current.scrollHeight;
       textRef.current.style.height = scrollHeight + "px";
@@ -83,62 +103,13 @@ export function Post({ postIsLoading }) {
   const RightSkeleton = styled.div`
     flex: 1;
   `;
-  const ImageEditBlock = styled.div`
-    z-index: 3;
-    position: fixed;
-    top: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 550px;
-    height: auto;
-    padding-bottom: 60px;
-    border-radius: 12px;
-    background-color: #e8dfd2;
-  `;
-  const ImageEditBlockTitle = styled.div`
-    width: 100%;
-    height: 60px;
-    box-sizing: border-box;
-    padding: 10px;
-  `;
-  const Back = styled.div`
-    display: inline-block;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    margin-right: 40px;
-    cursor: pointer;
-    &:hover {
-      background-color: #666;
-    }
-  `;
-  const Save = styled.button`
-  border-radius: 20px;
-  position: relative;
-  left: 50%;
-  border: none;
-  padding: 10px 15px;
-  vertical-align: top;
-  cursor: pointer;
-  &:hover{
-    filter:brightness(0.8);
-  }
-}
-  `;
   function addPostItem(e) {
-    console.log(
-      e.target.parentNode.parentNode.querySelector("form").elements[0]
-    );
-    console.log(
-      e.target.parentNode.parentNode.querySelector("form").elements[0].value
-    );
     const optionOne =
       e.target.parentNode.parentNode.querySelector("form").elements[0].value;
     const optionTwo =
       e.target.parentNode.parentNode.querySelector("form").elements[1].value;
     async function storePostItem() {
       try {
-        console.log(optionOne);
         const docRef = await addDoc(collection(db, "posts"), {
           timestamp: serverTimestamp(),
           author: {
@@ -221,74 +192,6 @@ export function Post({ postIsLoading }) {
     storePostItem();
     setPostImageUpload(null);
   }
-  const EditImage = () => {
-    const [image] = useImage(postImage?.src, "anonymous");
-    const scalex = postImage?.offsetWidth / image?.width;
-    const scaley = postImage?.offsetHeight / image?.height;
-    const [scale, setScale] = useState(1);
-    const [maxX, setMaxX] = useState(scalex);
-    const [maxY, setMaxY] = useState(scaley);
-    const handleWheel = (e) => {
-      // if (
-      //   e.target.attrs.x < 0 &&
-      //   Math.abs(e.target.attrs.x) >
-      //     (e.target.attrs.scaleX - scalex) * image.width
-      // ) {
-      //   console.log("ok");
-      //   return { x: (e.target.attrs.scaleX - scalex) * image.width * -1 };
-      // }
-      if (e.evt.deltaY < 0) {
-        setScale(scale * 1.05);
-      } else {
-        if (scale <= 1) {
-          return;
-        }
-        setScale(scale / 1.05);
-      }
-    };
-    const handleDrag = (e) => {
-      setMaxX(e.target.attrs.scaleX);
-      setMaxY(e.target.attrs.scaleY);
-    };
-    return (
-      <Image
-        image={image}
-        scaleX={scalex * scale}
-        scaleY={scaley * scale}
-        draggable={true}
-        dragBoundFunc={(pos) => {
-          return {
-            x:
-              pos.x > 0
-                ? 0
-                : Math.abs(pos.x) > (maxX - scalex) * image?.width
-                ? (maxX - scalex) * image?.width * -1
-                : pos.x,
-            y:
-              pos.y > 0
-                ? 0
-                : Math.abs(pos.y) > (maxY - scaley) * image?.height
-                ? (maxY - scaley) * image?.height * -1
-                : pos.y,
-          };
-        }}
-        onWheel={(e) => {
-          handleWheel(e);
-        }}
-        onDragMove={(e) => {
-          handleDrag(e);
-        }}
-      />
-    );
-  };
-  const handleExport = () => {
-    const uri = stageRef.current.toDataURL();
-
-    const decodedUri = window.decodeURI(uri);
-    const postImage = document.querySelector(".post-image");
-    postImage.src = decodedUri;
-    setOpen(false);
-  };
   const PostAuthorPhoto = styled.div`
     width: 50px;
     height: 50px;
@@ -300,12 +203,6 @@ export function Post({ postIsLoading }) {
     background-position: center;
     background-repeat: no-repeat;
     cursor: pointer;
-  `;
-  const Header = styled.div`
-    height: 120px;
-    box-sizing: border-box;
-    padding: 20px 20px;
-    border-bottom: 1px solid #8c969b;
   `;
   const PostBtn = styled.button`
     position: relative;
@@ -335,27 +232,9 @@ export function Post({ postIsLoading }) {
       border-radius: 50%;
       cursor: pointer;
     }
-  `;
-  const PostRight = styled.div`
-    display: inline-block;
-    flex: 1;
-    vertical-align: top;
-  `;
-  const IconWrapper = styled.div`
-    display: inline-block;
-    margin-right: 8px;
-    width: 40px;
-    height: 40px;
-    vertical-align: bottom;
-    border-radius: 50%;
-    &:hover {
-      background-color: #8c969b;
+    @media (max-width: 500px) {
+      display: none;
     }
-  `;
-  const Emoji = styled.div`
-    display: ${showEmoji ? "block" : "none"};
-    position: absolute;
-    z-index: 2;
   `;
   const Vote = styled.form`
     display: ${showPoll ? "block" : "none"};
@@ -433,9 +312,125 @@ export function Post({ postIsLoading }) {
   }
 }
   `;
+  const Footer = styled.div`
+    display: none;
+    width: 100%;
+    height: 40px;
+    bottom: 0;
+    background-color: #e8ccac;
+    @media (max-width: 500px) {
+      display: block;
+    }
+  `;
+  const ProfilePhoto = styled.div`
+    display: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-image: url(${currentUser.photoURL
+      ? currentUser.photoURL
+      : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"});
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    @media (max-width: 500px) {
+      display: block;
+    }
+  `;
+  const onFileChange = async (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setPostImageUpload(file);
+      let imageDataUrl = await readFile(file);
+      imageRef.current.src = imageDataUrl;
+
+      setPostImageUpload(file);
+      setImageSrc(imageDataUrl);
+    }
+  };
+  const onCropComplete = useCallback((croppedArea, croppedAreaPixel) => {
+    console.log(croppedArea.x, croppedAreaPixel.x);
+    if (croppedArea.x == NaN || croppedAreaPixel.x == NaN) {
+      console.log("return");
+      return;
+    } else {
+      setCroppedAreaPixels(croppedAreaPixel);
+    }
+  }, []);
+  const createImage = (url) =>
+    new Promise((resolve, reject) => {
+      const image = new Image();
+      image.addEventListener("load", () => resolve(image));
+      image.addEventListener("error", (error) => reject(error));
+      image.setAttribute("crossOrigin", "anonymous"); // needed to avoid cross-origin issues on CodeSandbox
+      image.src = url;
+    });
+  const dataURLtofile = (dataURL, fileName) => {
+    let arr = dataURL.split(","),
+      mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]),
+      n = bstr.length,
+      u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], fileName, { type: mime });
+  };
+  const showCroppedImage = useCallback(async () => {
+    try {
+      const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
+      setPostImageUpload(dataURLtofile(croppedImage, `${currentUser.uid}.jpg`));
+      imageRef.current.src = croppedImage;
+      setOpen(false);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [imageSrc, croppedAreaPixels]);
+  const getCroppedImg = async () => {
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      return null;
+    }
+
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    // draw rotated image
+    ctx.drawImage(image, 0, 0);
+
+    // croppedAreaPixels values are bounding box relative
+    // extract the cropped image using these values
+    const data = ctx.getImageData(
+      croppedAreaPixels.x,
+      croppedAreaPixels.y,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height
+    );
+    console.log(croppedAreaPixels);
+    // set canvas width to final desired crop size - this will clear existing context
+    canvas.width = croppedAreaPixels.width;
+    canvas.height = croppedAreaPixels.height;
+
+    // paste generated rotate image at the top left corner
+    ctx.putImageData(data, 0, 0);
+
+    // As Base64 string
+    return canvas.toDataURL("image/jpeg");
+  };
+  const re = /(.|\s)*\S(.|\s)*/;
   return (
     <div className="post">
-      <Header>Home</Header>
+      <div className="post-header">
+        Home
+        <ProfilePhoto
+          onClick={() => {
+            document.querySelector(".sidebar").classList.add("show-sidebar");
+          }}
+        ></ProfilePhoto>
+      </div>
       <div className="post-area">
         <PostLeft>
           <PostAuthorPhoto></PostAuthorPhoto>
@@ -444,6 +439,7 @@ export function Post({ postIsLoading }) {
           <textarea
             ref={textRef}
             value={value}
+            maxLength={500}
             onChange={(e) => {
               setValue(e.target.value);
             }}
@@ -477,7 +473,11 @@ export function Post({ postIsLoading }) {
           </Vote>
           {postImageUpload && (
             <div className="post-image-container">
-              <img draggable="false" className="post-image"></img>
+              <img
+                draggable="false"
+                className="post-image"
+                ref={imageRef}
+              ></img>
               <div
                 className="post-image-remove"
                 onClick={() => {
@@ -499,7 +499,8 @@ export function Post({ postIsLoading }) {
 
           <div className="post-area-right-navbar">
             <div className="post-area-icon">
-              <IconWrapper
+              <div
+                className="icon-wrapper"
                 onClick={() => {
                   const postImageInput =
                     document.querySelector(".post-image-input");
@@ -507,56 +508,54 @@ export function Post({ postIsLoading }) {
                 }}
               >
                 <icon.postImageIcon></icon.postImageIcon>
-              </IconWrapper>
-              <IconWrapper>
-                <icon.GifIcon></icon.GifIcon>
-              </IconWrapper>
-              <IconWrapper
+              </div>
+              <div
+                className="icon-wrapper"
                 onClick={() => {
                   setShowPoll(true);
                 }}
               >
                 <icon.pollIcon></icon.pollIcon>
-              </IconWrapper>
-              <IconWrapper
+              </div>
+              <div
+                className="icon-wrapper"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowEmoji(true);
                 }}
               >
                 <icon.emojiIcon></icon.emojiIcon>
-              </IconWrapper>
+              </div>
             </div>
             <input
               type={"file"}
               className="post-image-input"
-              onChange={(e) => {
-                console.log(e.target.files[0]);
-                previewImage(e.target.files[0]);
-                setPostImageUpload(e.target.files[0]);
-              }}
+              onChange={onFileChange}
             ></input>
             <PostBtn
               onClick={(e) => {
                 addPostItem(e);
               }}
-              disabled={value ? false : true}
+              disabled={value.match(re)?.length > 0 ? false : true}
             >
               Whisper
             </PostBtn>
           </div>
-          <Emoji
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            <Picker
-              data={data}
-              onEmojiSelect={(emoji) =>
-                setValue((prevValue) => prevValue + emoji.native)
-              }
-            ></Picker>
-          </Emoji>
+          {showEmoji && (
+            <div
+              className="emoji"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <Picker
+                data={data}
+                onEmojiSelect={(emoji) =>
+                  setValue((prevValue) => prevValue + emoji.native)
+                }
+              ></Picker>
+            </div>
+          )}
         </div>
       </div>
       {postIsLoading && (
@@ -605,15 +604,17 @@ export function Post({ postIsLoading }) {
       {postList.map((p) => (
         <PostElement key={p.id} post={p} />
       ))}
+      <Footer></Footer>
       <Popup
         open={open}
         onClose={() => {
           setOpen(false);
         }}
       >
-        <ImageEditBlock>
-          <ImageEditBlockTitle>
-            <Back
+        <div className="image-edit-block">
+          <div className="title">
+            <div
+              className="back"
               onClick={() => {
                 setOpen(false);
               }}
@@ -623,28 +624,48 @@ export function Post({ postIsLoading }) {
                   <path d="M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z"></path>
                 </g>
               </svg>
-            </Back>
+            </div>
             Crop media
-            <Save onClick={handleExport}>Save</Save>
-          </ImageEditBlockTitle>
-          <Stage
-            width={postImage?.offsetWidth}
-            height={postImage?.offsetHeight}
-            style={{
-              margin: `0 auto`,
-              marginTop: `120px`,
-              border: `1px solid #000`,
-              width: postImage?.offsetWidth,
-              height: postImage?.offsetHeight,
-            }}
-            ref={stageRef}
-          >
-            <Layer>
-              <EditImage />
-            </Layer>
-          </Stage>
-        </ImageEditBlock>
+            <button className="save" onClick={showCroppedImage}>
+              Save
+            </button>
+          </div>
+          <div className="crop-container">
+            <Cropper
+              image={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={4 / 3}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+              cropSize={{
+                width: imageRef.current?.getBoundingClientRect().width * 1.157,
+                height:
+                  imageRef.current?.getBoundingClientRect().height * 1.157,
+              }}
+              showGrid={false}
+              zoomSpeed={0.3}
+              objectFit={"contain"}
+              style={{ cropAreaStyle: { border: "2px solid #3788ff" } }}
+            ></Cropper>
+          </div>
+          <div className="control-bar">
+            <input
+              type={"range"}
+              value={zoom}
+              min={1}
+              max={3}
+              step={0.01}
+              onInput={(e) => {
+                e.preventDefault();
+                setZoom(e.target.value);
+              }}
+            ></input>
+          </div>
+        </div>
       </Popup>
+      <Sidebar></Sidebar>
     </div>
   );
 }

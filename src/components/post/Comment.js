@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
+import "../../scss/comment.scss";
 
 export const Comment = ({ data }) => {
   const navigate = useNavigate();
@@ -28,18 +29,35 @@ export const Comment = ({ data }) => {
     background-position: center;
     vertical-align: top;
     cursor: pointer;
+    &:hover {
+      filter: brightness(0.9);
+    }
+    &:active {
+      filter: brightness(0.8);
+    }
   `;
   const Outer = styled.div`
     display: inline-block;
     width: 90%;
+    @media (max-width: 500px) {
+      width: 80%;
+    }
   `;
   const Name = styled.div`
     display: inline-block;
     margin: 0px 5px 10px 10px;
-    font-size: 24px;
+    font-size: 20px;
+    max-width: 50%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    vertical-align: middle;
     cursor: pointer;
     &:hover {
       text-decoration: underline;
+    }
+    @media (max-width: 600px) {
+      font-size: 18px;
     }
   `;
   const Content = styled.div`
@@ -47,11 +65,23 @@ export const Comment = ({ data }) => {
   padding-left: 10px;
   width: 70%;
   height: auto;
-  font-size: 22px;
+  font-size: 18px;
+  @media (max-width: 600px) {
+    font-size: 16px;
+  }
 }
   `;
+  const Email = styled.div`
+    color: rgb(153, 153, 153);
+    max-width: 40%;
+    vertical-align: top;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    display: inline-block;
+  `;
   return (
-    <Wrapper ref={ref}>
+    <div className="comment-outer" ref={ref}>
       <Profile
         onClick={() => {
           navigate(`/${data.author.uid}`);
@@ -65,9 +95,9 @@ export const Comment = ({ data }) => {
         >
           {data.author.displayName}
         </Name>
-        <span style={{ color: "#999" }}>{data.author.email}</span>
+        <Email>{data.author.email}</Email>
         <Content>{data.content}</Content>
       </Outer>
-    </Wrapper>
+    </div>
   );
 };

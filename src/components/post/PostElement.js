@@ -5,6 +5,8 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -18,11 +20,41 @@ import { db, storage } from "../../firebase";
 import "../../scss/postarea.scss";
 import * as icon from "../icon/icon.js";
 import Popup from "../popup/Popup";
-import { deleteObject, ref } from "firebase/storage";
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
 import styled from "@emotion/styled";
 import { Comment } from "./Comment";
 import { useDispatch, useSelector } from "react-redux";
 import { deletePostList } from "../../store/postListSlice";
+import { LikeUser } from "./LikeUser";
+
+export const getTimeAgo = (timestamp) => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const secondsAgo = Math.floor((now - date) / 1000);
+  if (secondsAgo < 60) {
+    return "Just now";
+  } else if (secondsAgo < 60 * 60) {
+    const minutesAgo = Math.floor(secondsAgo / 60);
+    return `${minutesAgo}minutes ago`;
+  } else if (secondsAgo < 60 * 60 * 24) {
+    const hoursAgo = Math.floor(secondsAgo / (60 * 60));
+    return `${hoursAgo}hours ago`;
+  } else if (secondsAgo < 60 * 60 * 24 * 7) {
+    const daysAgo = Math.floor(secondsAgo / (60 * 60 * 24));
+    return `${daysAgo}days ago`;
+  } else {
+    return date.toLocaleString("en-US", {
+      hour12: false,
+      day: "numeric",
+      month: "short",
+    });
+  }
+};
 
 export const PostElement = React.memo(({ post }) => {
   const dispatch = useDispatch();
@@ -30,10 +62,12 @@ export const PostElement = React.memo(({ post }) => {
   const { currentUser } = useContext(AuthContext);
   const [likes, setLikes] = useState([]);
   const [liked, setLiked] = useState(false);
+  const [collected, setCollected] = useState(false);
   const [comments, setComments] = useState([]);
   const [showComment, setShowComment] = useState(false);
   const [poll, setPoll] = useState([]);
   const [polled, setPolled] = useState(false);
+  const [showLikes, setShowLikes] = useState(false);
   const commentRef = useRef();
   const q = query(
     collection(db, "comments", post.id, "comment"),
@@ -55,6 +89,22 @@ export const PostElement = React.memo(({ post }) => {
   useEffect(() => {
     setLiked(likes.find((element) => element == currentUser.uid) !== undefined);
   }, [likes]);
+  useEffect(() => {
+    const getCollected = async () => {
+      try {
+        const docRef = await getDoc(doc(db, "collected", post.id));
+        setCollected(
+          docRef
+            .data()
+            .collectedAccount?.find((user) => user == currentUser.uid) !==
+            undefined
+        );
+      } catch (error) {
+        return;
+      }
+    };
+    getCollected();
+  }, []);
   const likePost = async () => {
     if (liked) {
       await updateDoc(doc(db, "likes", post.id), {
@@ -63,6 +113,17 @@ export const PostElement = React.memo(({ post }) => {
     } else {
       await updateDoc(doc(db, "likes", post.id), {
         likeAccount: arrayUnion(currentUser.uid),
+      });
+    }
+  };
+  const collectPost = async () => {
+    if (collected) {
+      await updateDoc(doc(db, "collected", post.id), {
+        collectedAccount: arrayRemove(currentUser.uid),
+      });
+    } else {
+      await updateDoc(doc(db, "collected", post.id), {
+        collectedAccount: arrayUnion(currentUser.uid),
       });
     }
   };
@@ -98,52 +159,26 @@ export const PostElement = React.memo(({ post }) => {
     dispatch(deletePostList(postId));
   }
   const submitComment = async () => {
-    await addDoc(collection(db, "comments", post.id, "comment"), {
-      timestamp: serverTimestamp(),
-      author: {
-        displayName: currentUser.displayName,
-        email: currentUser.email,
-        photoURL: currentUser.photoURL,
-        uid: currentUser.uid,
-      },
-      content: commentRef.current.value,
-    });
+    const re = /(.|\s)*\S(.|\s)*/;
+    if (commentRef.current.value.match(re)?.length > 0) {
+      try {
+        await addDoc(collection(db, "comments", post.id, "comment"), {
+          timestamp: serverTimestamp(),
+          author: {
+            displayName: currentUser.displayName,
+            email: currentUser.email,
+            photoURL: currentUser.photoURL,
+            uid: currentUser.uid,
+          },
+          content: commentRef.current.value,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      return;
+    }
   };
-  const CommentBlock = styled.div`
-    z-index: 3;
-    position: fixed;
-    top: 35%;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 15px;
-    width: 520px;
-    height: 400px;
-    background-color: #e8dfd2;
-    border-radius: 12px;
-    box-shadow: 0px 0px 10px 5px #777;
-  `;
-  const CommentWrapper = styled.div`
-    width: 100%;
-    height: 350px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #aaa #ddd;
-    &::-webkit-scrollbar {
-      width: 7px;
-      height: 15px;
-    }
-    &::-webkit-scrollbar-button {
-      background: transparent;
-    }
-    &::-webkit-scrollbar-track-piece {
-      background: transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-      border-radius: 4px;
-      background-color: #aaa;
-      border: 1px solid slategrey;
-    }
-  `;
   const InputWrapper = styled.div`
     position: absolute;
     width: 100%;
@@ -176,6 +211,12 @@ export const PostElement = React.memo(({ post }) => {
     &:focus {
       outline: none;
       border: 2px solid #4ca5bd;
+    }
+    @media (max-width: 550px) {
+      width: 60%;
+    }
+    @media (max-width: 480px) {
+      width: 50%;
     }
   `;
   const CommentButton = styled.button`
@@ -266,8 +307,62 @@ export const PostElement = React.memo(({ post }) => {
     color: #666;
 }
   `;
+  const LikeUserWrapper = styled.div`
+    z-index: 6;
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px;
+    width: 400px;
+    height: 500px;
+    background-color: #e8dfd2;
+    border-radius: 12px;
+    box-shadow: 0px 0px 10px 5px #777;
+    overflow-y: auto;
+    @media (max-width: 500px) {
+      width: 90%;
+    }
+    @media (max-height: 800px) {
+      top: 15%;
+    }
+    @media (max-height: 700px) {
+      top: 5%;
+    }
+    &::-webkit-scrollbar {
+      width: 7px;
+      height: 15px;
+    }
+    &::-webkit-scrollbar-button {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-track-piece {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      border-radius: 4px;
+      background-color: #aaa;
+      border: 1px solid slategrey;
+    }
+  `;
+  const LikesTitle = styled.div`
+    width: 100%;
+    height: 60px;
+  `;
+  const Close = styled.div`
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    margin: 3px 10px 0px 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    vertical-align: sub;
+    &:hover {
+      background-color: rgba(136, 136, 136, 0.6);
+    }
+  `;
   function voteOption1() {
-    if (!currentUser.uid == post.author.uid && !polled) {
+    if (currentUser.uid !== post.author.uid && !polled) {
       updateDoc(doc(db, "posts", post.id), {
         ["poll.option1." + Object.keys(post.poll.option1)[0]]: arrayUnion(
           currentUser.uid
@@ -289,6 +384,41 @@ export const PostElement = React.memo(({ post }) => {
     color: #666;
     margin-left: 10px;
   `;
+  const getTimeAgo = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const secondsAgo = Math.floor((now - date) / 1000);
+    if (secondsAgo < 60) {
+      return "Just now";
+    } else if (secondsAgo < 60 * 60) {
+      const minutesAgo = Math.floor(secondsAgo / 60);
+      if (minutesAgo == 1) {
+        return "1 minute ago";
+      } else {
+        return `${minutesAgo}minutes ago`;
+      }
+    } else if (secondsAgo < 60 * 60 * 24) {
+      const hoursAgo = Math.floor(secondsAgo / (60 * 60));
+      if (hoursAgo == 1) {
+        return "1 hour ago";
+      } else {
+        return `${hoursAgo}hours ago`;
+      }
+    } else if (secondsAgo < 60 * 60 * 24 * 7) {
+      const daysAgo = Math.floor(secondsAgo / (60 * 60 * 24));
+      if (daysAgo == 1) {
+        return "1 day ago";
+      } else {
+        return `${daysAgo}days ago`;
+      }
+    } else {
+      return date.toLocaleString("en-US", {
+        hour12: false,
+        day: "numeric",
+        month: "short",
+      });
+    }
+  };
   return (
     <div className="post-area" key={post.id}>
       <div className="post-area-left">
@@ -309,11 +439,9 @@ export const PostElement = React.memo(({ post }) => {
           </b>
           <Time>
             ·
-            {new Date(post.timestamp * 1000).toLocaleDateString("en-US", {
-              hour12: false,
-              day: "numeric",
-              month: "short",
-            })}
+            {new Date(post.timestamp * 1000).toLocaleString() == "Invalid Date"
+              ? "Just now"
+              : getTimeAgo(post.timestamp * 1000)}
           </Time>
           <div className="post-options" id={post.id}>
             {currentUser.uid == post.author.uid ? (
@@ -336,7 +464,7 @@ export const PostElement = React.memo(({ post }) => {
             <div
               className="report"
               onClick={() => {
-                console.log(comments);
+                console.log(likes);
               }}
             >
               <icon.reportIcon />
@@ -403,21 +531,26 @@ export const PostElement = React.memo(({ post }) => {
           </PollWrapper>
         )}
         <div className="post-area-effectbar">
-          <div
-            className="effect-container like-effect"
-            onClick={() => {
-              likePost();
-            }}
-          >
-            <div className="svg-container">
+          <div className="effect-container like-effect">
+            <div
+              className="svg-container"
+              onClick={() => {
+                likePost();
+              }}
+            >
               {liked ? <icon.likedIcon /> : <icon.likeIcon />}
             </div>
-            <span>{likes.length}</span>
+            <span
+              onClick={() => {
+                setShowLikes(true);
+              }}
+            >
+              {likes.length}
+            </span>
           </div>
           <div
             className="effect-container comment-effect"
             onClick={() => {
-              console.log("ok");
               setShowComment(true);
             }}
           >
@@ -426,9 +559,15 @@ export const PostElement = React.memo(({ post }) => {
             </div>
             <span>{comments.length}</span>
           </div>
-          <div className="effect-container collected-effect">
+          <div
+            className="effect-container collected-effect"
+            onClick={() => {
+              collectPost();
+              setCollected(!collected);
+            }}
+          >
             <div className="svg-container">
-              <icon.collectedIcon />
+              {collected ? <icon.collectedIcon /> : <icon.collectIcon />}
             </div>
           </div>
         </div>
@@ -439,12 +578,12 @@ export const PostElement = React.memo(({ post }) => {
           setShowComment(false);
         }}
       >
-        <CommentBlock>
-          <CommentWrapper>
+        <div className="comment-block">
+          <div className="comment-wrapper">
             {comments.map((c) => (
               <Comment key={c.id} data={c.data} />
             ))}
-          </CommentWrapper>
+          </div>
           <InputWrapper>
             <InputProfile />
             <CommentInput ref={commentRef} placeholder={"Say something..."} />
@@ -456,7 +595,33 @@ export const PostElement = React.memo(({ post }) => {
               Comment
             </CommentButton>
           </InputWrapper>
-        </CommentBlock>
+        </div>
+      </Popup>
+      <Popup
+        open={showLikes}
+        onClose={() => {
+          setShowLikes(false);
+        }}
+      >
+        <LikeUserWrapper>
+          <LikesTitle>
+            <Close
+              onClick={() => {
+                setShowLikes(false);
+              }}
+            >
+              <svg viewBox="-3 -8 30 30">
+                <g>
+                  <path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path>
+                </g>
+              </svg>
+            </Close>
+            Liked by
+          </LikesTitle>
+          {likes?.map((user) => (
+            <LikeUser key={user} user={user}></LikeUser>
+          ))}
+        </LikeUserWrapper>
       </Popup>
     </div>
   );

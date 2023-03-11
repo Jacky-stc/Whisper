@@ -19,6 +19,7 @@
     box-shadow: 0 0 12px 3px #999;
     transition: 0.4s;
     opacity: 0.5;
+    z-index: 3;
     div {
       z-index: 1;
       position: relative;
@@ -75,7 +76,9 @@
     margin-right: 40px;
     padding-right: 10px;
     cursor: pointer;
-
+    @media (max-width: 600px) {
+      margin-right: 30px;
+    }
     .svg-container {
       display: inline-block;
       border-radius: 50%;
@@ -83,17 +86,22 @@
     }
     span {
       user-select: none;
+      margin-left: 5px;
     }
   }
   .like-effect {
-    &:hover {
-      .svg-container {
+    .svg-container {
+      &:hover {
         background-color: rgba(249, 24, 128, 0.3);
         svg {
           fill: rgb(249, 24, 128);
         }
       }
-      color: rgb(249, 24, 128);
+    }
+    span {
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
   .comment-effect {
@@ -117,5 +125,46 @@
       }
       color: rgb(0, 126, 124);
     }
+  }
+}
+.comment-block {
+  z-index: 5;
+  position: fixed;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 15px;
+  width: 520px;
+  height: 400px;
+  background-color: #e8dfd2;
+  border-radius: 12px;
+  box-shadow: 0px 0px 10px 5px #777;
+  @media (max-width: 600px) {
+    width: 90%;
+  }
+  @media (max-width: 700px) {
+    top: 15%;
+  }
+}
+.comment-wrapper {
+  width: 100%;
+  height: 350px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #aaa #ddd;
+  &::-webkit-scrollbar {
+    width: 7px;
+    height: 15px;
+  }
+  &::-webkit-scrollbar-button {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-track-piece {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: #aaa;
+    border: 1px solid slategrey;
   }
 }

@@ -1,0 +1,20 @@
+.sidebar {
+  visibility: hidden;
+  position: fixed;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  background-color: #182c38;
+  color: #f5f5f5;
+  width: 65%;
+  height: 100%;
+  box-shadow: 0px 0px 8px 4px #e5e5e5;
+  padding: 10px;
+  z-index: 5;
+  transition: 0.8s;
+  transform: translateX(-100%);
+}
+.show-sidebar {
+  visibility: visible;
+  transform: translateX(0);
+}

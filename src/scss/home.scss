@@ -14,11 +14,10 @@ main {
   display: flex;
 }
 header {
-  width: 250px;
   position: fixed;
   height: 100%;
-  border-right: 1px solid #666;
   font-size: 24px;
+  border-right: 1px solid #8c969b;
   .navbar {
     margin-top: 80px;
     float: right;
@@ -33,20 +32,6 @@ header {
         cursor: pointer;
         &:visited {
           color: #000;
-        }
-        div {
-          width: fit-content;
-          box-sizing: border-box;
-          padding: 10px 20px;
-          border-radius: 200px;
-          &:hover {
-            background-color: #e8ccac;
-            filter: brightness(0.8);
-          }
-          &:active {
-            background-color: #e8ccac;
-            filter: brightness(0.7);
-          }
         }
       }
     }
@@ -79,22 +64,21 @@ svg {
   width: 40px;
   height: 30px;
 }
-@media (max-width: 1200px) {
+@media (max-width: 1280px) {
   main {
-    width: 90%;
+    width: 100%;
   }
   header {
-    width: 200px;
+    width: 12%;
   }
-  .post {
-    margin-left: 200px;
+}
+@media (max-width: 1020px) {
+  header {
+    width: 15%;
   }
-  .friend {
-    width: 250px;
-    .search-icon-container {
-      input {
-        width: 70%;
-      }
-    }
+}
+@media (max-width: 500px) {
+  header {
+    display: none;
   }
 }

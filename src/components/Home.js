@@ -22,6 +22,9 @@ import { Profile } from "./profile/Profile";
 import { useSelector, useDispatch } from "react-redux";
 import { getPostList } from "../store/postListSlice";
 import styled from "@emotion/styled";
+import { Footer } from "./Footer";
+import { Bookmark } from "./Bookmark";
+import { getMessaging, onMessage } from "firebase/messaging";
 
 export function Home() {
   const { currentUser } = useContext(AuthContext);
@@ -29,6 +32,11 @@ export function Home() {
   const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
   const postList = useSelector((state) => state.postList.postList);
   const dispatch = useDispatch();
+  const messaging = getMessaging();
+  onMessage(messaging, (payload) => {
+    console.log("Message received. ", payload);
+    // ...
+  });
   useEffect(() => {
     if (currentUser) {
       async function getPost() {
@@ -79,8 +87,18 @@ export function Home() {
               </>
             }
           ></Route>
-          <Route path="/messages/*" element={<Message />}></Route>
+          <Route
+            path="/bookmarks"
+            element={
+              <>
+                <Bookmark />
+                <Friend />
+              </>
+            }
+          ></Route>
+          <Route path="/messages" element={<Message />}></Route>
         </Routes>
+        <Footer></Footer>
       </Wrapper>
     </main>
   );

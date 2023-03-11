@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../scss/homepage.scss";
-import { auth, db } from "../firebase";
+import { auth, db, storage } from "../firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -14,6 +14,9 @@ import Loader from "./loader/loader";
 import post from "../img/post.jpg";
 import chat from "../img/chat.jpg";
 import profile from "../img/profile.jpg";
+import logo from "../img/whisper.jpg";
+import defaultUserPhoto from "../img/defaultUser.jpg";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 export function Homepage() {
   const [logLoading, setLogLoading] = useState(false);
@@ -21,8 +24,34 @@ export function Homepage() {
   const [LogError, setLogError] = useState(null);
   const [regError, setRegError] = useState(null);
   const [regSuccess, setRegsuccess] = useState(null);
+  const [logEmail, setLogEmail] = useState("testing@gmail.com");
+  const [logPassword, setLogPassword] = useState("testtest");
+  const [regEmail, setRegEmail] = useState("");
+  const [regName, setRegName] = useState("");
+  const [regPassword, setRegPassword] = useState("");
   const [show, setShow] = useState(true);
   const navigate = useNavigate();
+  const introRef = useRef();
+  const introRef2 = useRef();
+  const introRef3 = useRef();
+  useEffect(() => {
+    const option = {
+      root: null,
+      rootMargin: "0px 0px 0px 0px",
+      threshold: 0.2,
+    };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          return;
+        }
+        entry.target.classList.add("show-homepage-content");
+      });
+    }, option);
+    observer.observe(introRef.current);
+    observer.observe(introRef2.current);
+    observer.observe(introRef3.current);
+  }, []);
   function handleRegisterSubmit(e) {
     e.preventDefault();
     const displayName = e.target[0].value;
@@ -47,12 +76,32 @@ export function Homepage() {
         updateProfile(userCredential.user, {
           displayName: displayName,
         });
-        setDoc(doc(db, "users", userCredential.user.uid), {
-          displayName: displayName,
-          email: registerEmail,
-          bio: "",
-          location: "",
-        });
+        const fetchImage = async () => {
+          const file = await fetch(defaultUserPhoto)
+            .then((response) => response.blob())
+            .then(
+              (blob) => new File([blob], "test.jpg", { type: "image/jpeg" })
+            );
+          const imageRef = ref(
+            storage,
+            `profile picture/${userCredential.user.uid}`
+          );
+          uploadBytes(imageRef, file).then((snapshot) => {
+            getDownloadURL(snapshot.ref).then((url) => {
+              setDoc(doc(db, "users", userCredential.user.uid), {
+                displayName: displayName,
+                email: registerEmail,
+                bio: "",
+                location: "",
+                photoURL: url,
+              });
+              updateProfile(userCredential.user, {
+                photoURL: url,
+              });
+            });
+          });
+        };
+        fetchImage();
         setDoc(doc(db, "followers", userCredential.user.uid), {
           following: [],
           follower: [],
@@ -97,8 +146,8 @@ export function Homepage() {
   const Button = styled.button`
     width: 200px;
     height: 45px;
-    margin-top: 30px;
-    margin-left: 50px;
+    display: block;
+    margin: 0 auto;
     background: none;
     border: 1px solid #444;
     border-radius: 12px;
@@ -117,7 +166,7 @@ export function Homepage() {
     left: 100%;
     transform: translateX(-110%);
     margin-right: 40px;
-    top: 15%;
+    top: 20%;
     border: 1px solid #888;
     border-radius: 8px;
     justify-content: center;
@@ -133,6 +182,15 @@ export function Homepage() {
           text-decoration: 1px solid underline;
         }
       }
+    }
+    @media (max-width: 1020px) {
+      left: 0%;
+      transform: translateX(10%);
+    }
+    @media (max-width: 500px) {
+      left: 5%;
+      width: 90%;
+      transform: translateX(0%);
     }
   `;
   const LoaderWrapper = styled.div`
@@ -163,27 +221,94 @@ export function Homepage() {
   `;
   const Wrapper = styled.div`
     position: relative;
-    top: 150px;
+    top: 15%;
     width: 1200px;
     margin: 0 auto;
     display: flex;
+    visibility: hidden;
     justify-content: space-around;
+    transition: 0.8s;
+    transform: translateY(-20px);
+    @media (max-width: 1200px) {
+      width: 90%;
+    }
+    @media (max-width: 768px) {
+      display: block;
+      top: 8%;
+    }
+    @media (max-height: 720px) {
+      top: 5%;
+    }
+  `;
+  const ImageOuter = styled.div`
+    display: flex;
+    align-items: center;
+    width: 50%;
+    @media (max-width: 1200px) {
+      width: 60%;
+    }
+    @media (max-width: 768px) {
+      width: 80%;
+      margin: 40px auto;
+    }
   `;
   const Image = styled.img`
     display: inline-block;
-    width: 50%;
+    width: 100%;
     border-radius: 20px;
     box-shadow: 0px 0px 5px 5px #aaa;
   `;
   const Explanation = styled.div`
     display: inline-block;
     width: 35%;
+    @media (max-width: 768px) {
+      width: 80%;
+      display: block;
+      margin: 0 auto;
+    }
   `;
   const Slogan = styled.h2`
     font-size: xx-large;
+    margin-top: 0;
+    @media (max-height: 790px) {
+      font-size: large;
+    }
   `;
   const Content = styled.div`
     line-height: 40px;
+  `;
+  const Header = styled.div`
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 80px;
+    align-items: center;
+    padding: 30px;
+    box-sizing: border-box;
+    background-color: rgb(232 204 172 / 70%);
+    box-shadow: 0px 0px 5px 5px #666;
+    z-index: 5;
+    @media (max-width: 1020px) {
+      display: flex;
+    }
+  `;
+  const Logo = styled.div`
+    display: inline-block;
+    margin-right: 15px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-image: url(${logo});
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  `;
+  const Name = styled.div`
+    display: inline-block;
+    vertical-align: super;
+    font-family: "Cormorant Garamond", serif;
+    font-size: 36px;
+    font-weight: bold;
   `;
   return (
     <>
@@ -191,17 +316,33 @@ export function Homepage() {
         className="homepage-background"
         style={{ backgroundImage: `url(${homepageBackground})` }}
       >
+        <div className="homepage-header">
+          <Logo></Logo>
+          <Name>Whisper</Name>
+        </div>
         {show ? (
-          <Form>
+          <div className="auth-form">
             <form onSubmit={handleSignin}>
               <Title>Login</Title>
               <Outer>
                 <div>email</div>
-                <Info type={"email"}></Info>
+                <Info
+                  type={"email"}
+                  value={logEmail}
+                  onChange={(e) => {
+                    setLogEmail(e.target.value);
+                  }}
+                ></Info>
               </Outer>
               <Outer>
                 <div>password</div>
-                <Info type={"password"}></Info>
+                <Info
+                  type={"password"}
+                  value={logPassword}
+                  onChange={(e) => {
+                    setLogPassword(e.target.value);
+                  }}
+                ></Info>
               </Outer>
               {LogError && <ErrorHint>{LogError}</ErrorHint>}
               {logLoading && (
@@ -222,22 +363,40 @@ export function Homepage() {
                 </a>
               </p>
             </form>
-          </Form>
+          </div>
         ) : (
-          <Form>
+          <div className="auth-form">
             <form onSubmit={handleRegisterSubmit}>
               <Title>Register</Title>
               <Outer>
                 <div>Name</div>
-                <Info type={"text"}></Info>
+                <Info
+                  type={"text"}
+                  value={regName}
+                  onChange={(e) => {
+                    setRegName(e.target.value);
+                  }}
+                ></Info>
               </Outer>
               <Outer>
                 <div>Email</div>
-                <Info type={"email"}></Info>
+                <Info
+                  type={"email"}
+                  value={regEmail}
+                  onChange={(e) => {
+                    setRegEmail(e.target.value);
+                  }}
+                ></Info>
               </Outer>
               <Outer>
                 <div>password</div>
-                <Info type={"password"}></Info>
+                <Info
+                  type={"password"}
+                  value={regPassword}
+                  onChange={(e) => {
+                    setRegPassword(e.target.value);
+                  }}
+                ></Info>
               </Outer>
               {regError && <ErrorHint>{regError}</ErrorHint>}
               {regSuccess && <SuccessHint>{regSuccess}</SuccessHint>}
@@ -259,7 +418,7 @@ export function Homepage() {
                 </a>
               </p>
             </form>
-          </Form>
+          </div>
         )}
 
         <div className="homepage-intro">
@@ -271,8 +430,8 @@ export function Homepage() {
           </p>
         </div>
       </div>
-      <Introduce>
-        <Wrapper>
+      <div className="homepage-introduce">
+        <div className="homepage-content" ref={introRef}>
           <Explanation>
             <Slogan>Connect with the world, share your story</Slogan>
             <Content>
@@ -281,12 +440,17 @@ export function Homepage() {
               pictures, texts, and polls.
             </Content>
           </Explanation>
-          <Image src={post}></Image>
-        </Wrapper>
-      </Introduce>
-      <Introduce2>
-        <Wrapper>
-          <Image src={chat}></Image>
+          <ImageOuter>
+            <Image src={post}></Image>
+          </ImageOuter>
+        </div>
+      </div>
+      <div className="homepage-introduce2">
+        <div
+          className="homepage-content"
+          ref={introRef2}
+          style={{ flexFlow: "row-reverse" }}
+        >
           <Explanation>
             <Slogan>Stay close, without distance</Slogan>
             <Content>
@@ -294,10 +458,13 @@ export function Homepage() {
               easy to stay connected no matter where you are.
             </Content>
           </Explanation>
-        </Wrapper>
-      </Introduce2>
-      <Introduce>
-        <Wrapper>
+          <ImageOuter>
+            <Image src={chat}></Image>
+          </ImageOuter>
+        </div>
+      </div>
+      <div className="homepage-introduce">
+        <div className="homepage-content" ref={introRef3}>
           <Explanation>
             <Slogan>Your social media, your way</Slogan>
             <Content>
@@ -305,9 +472,11 @@ export function Homepage() {
               interests and personality.
             </Content>
           </Explanation>
-          <Image src={profile}></Image>
-        </Wrapper>
-      </Introduce>
+          <ImageOuter>
+            <Image src={profile}></Image>
+          </ImageOuter>
+        </div>
+      </div>
     </>
   );
 }

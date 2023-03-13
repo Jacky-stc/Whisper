@@ -1,6 +1,6 @@
 # Whisper
 
-Simple social media platform created with React.js, Firebase Cloud Service.
+Simple social media platform created with [React.js](https://reactjs.org/ "React"), [Firebase Cloud Service](https://firebase.google.com/ "Firebase") .
 
 Website URL: https://whisper-ea7d9.web.app/
 
@@ -68,6 +68,10 @@ Project is created with:
 - Firebase Authentacation for user system
 - Firebase firestore for basic database
 - Firebase storage for storing media files
+
+## Inspiration
+
+Frontend design inspired by [Twitter](https://twitter.com/ "Twitter")
 
 ## Contact
 

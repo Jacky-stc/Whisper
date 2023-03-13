@@ -32,6 +32,7 @@ import {
 import { getUserInfo } from "../../store/userInfoSlice";
 import { updateProfile } from "firebase/auth";
 import Loader from "../loader/loader";
+import { Follow } from "./Follower";
 
 window.addEventListener(
   "click",
@@ -60,6 +61,7 @@ export function Profile() {
   const [openEdit, setOpenEdit] = useState(false);
   const [followers, setFollowers] = useState();
   const [followed, setFollowed] = useState(false);
+  const [showFollow, setShowFollow] = useState(false);
   const { currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
   let { userId } = useParams();
@@ -67,6 +69,9 @@ export function Profile() {
   const editPersonalPhoto = document.querySelector(
     ".profile-edit-personal-photo"
   );
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [userId]);
   useEffect(() => {
     const loadProfile = async () => {
       await getDoc(doc(db, "users", userId)).then((res) => {
@@ -95,20 +100,12 @@ export function Profile() {
     const personalPhotoUpload = document.querySelector("#photo-upload");
     personalPhotoUpload.click();
   }
-  function changePhoto(e) {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.addEventListener("load", () => {
-      const dataURL = reader.result;
-      editPersonalPhoto.style.backgroundImage = `url(${dataURL})`;
-    });
-  }
   const handleClick = async () => {
     const combinedId =
       currentUser.uid > userId
         ? currentUser.uid + userId
         : userId + currentUser.uid;
+
     try {
       const res = await getDoc(doc(db, "chats", combinedId));
       if (!res.exists()) {
@@ -119,11 +116,12 @@ export function Profile() {
             [combinedId]: {
               date: serverTimestamp(),
               lastMessage: {
-                text: "ok",
+                text: "",
               },
               userInfo: {
                 displayName: profile.displayName,
-                photoURL: profile.photoURL,
+                photoURL:
+                  profile.photoURL == undefined ? null : profile.photoURL,
                 uid: userId,
               },
             },
@@ -139,7 +137,7 @@ export function Profile() {
     }
   };
   const PersonalPhoto = styled.div`
-    z-index: 10;
+    z-index: 3;
     position: absolute;
     top: 170px;
     left: 3%;
@@ -181,6 +179,10 @@ export function Profile() {
     span {
       margin: 0 10px 0 3px;
       color: #666;
+      cursor: pointer;
+      &:hover {
+        text-decoration: underline;
+      }
     }
   `;
   function handleFollow() {
@@ -208,6 +210,60 @@ export function Profile() {
       });
     }
   }
+  const FollowUserWrapper = styled.div`
+    z-index: 6;
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px;
+    width: 400px;
+    height: 500px;
+    background-color: #e8dfd2;
+    border-radius: 12px;
+    box-shadow: 0px 0px 10px 5px #777;
+    overflow-y: auto;
+    @media (max-width: 500px) {
+      width: 90%;
+    }
+    @media (max-height: 800px) {
+      top: 15%;
+    }
+    @media (max-height: 700px) {
+      top: 5%;
+    }
+    &::-webkit-scrollbar {
+      width: 7px;
+      height: 15px;
+    }
+    &::-webkit-scrollbar-button {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-track-piece {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      border-radius: 4px;
+      background-color: #aaa;
+      border: 1px solid slategrey;
+    }
+  `;
+  const FollowTitle = styled.div`
+    width: 100%;
+    height: 60px;
+  `;
+  const Close = styled.div`
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    margin: 3px 10px 0px 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    vertical-align: sub;
+    &:hover {
+      background-color: rgba(136, 136, 136, 0.6);
+    }
+  `;
   return (
     <>
       <div className="profile">
@@ -271,9 +327,21 @@ export function Profile() {
           <p className="profile-bio">{profile?.bio}</p>
           <Follower>
             {followers?.following.length}
-            <span>Following</span>
+            <span
+              onClick={() => {
+                setShowFollow("following");
+              }}
+            >
+              Following
+            </span>
             {followers?.follower.length}
-            <span>Follower</span>
+            <span
+              onClick={() => {
+                setShowFollow("follower");
+              }}
+            >
+              Follower
+            </span>
           </Follower>
         </div>
         {personalPostList.map((value) => (
@@ -288,11 +356,42 @@ export function Profile() {
         }}
       >
         <ProfileEdit
-          changePhoto={changePhoto}
           uploadPhoto={uploadPhoto}
           setOpenEdit={setOpenEdit}
           profile={profile}
         />
+      </Popup>
+
+      <Popup
+        open={showFollow}
+        onClose={() => {
+          setShowFollow(false);
+        }}
+      >
+        <FollowUserWrapper>
+          <FollowTitle>
+            <Close
+              onClick={() => {
+                setShowFollow(false);
+              }}
+            >
+              <svg viewBox="-3 -8 30 30">
+                <g>
+                  <path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path>
+                </g>
+              </svg>
+            </Close>
+            {showFollow && showFollow.replace("f", "F")}
+          </FollowTitle>
+          {showFollow &&
+            followers[showFollow].map((follow) => (
+              <Follow
+                key={follow}
+                follow={follow}
+                setShowFollow={setShowFollow}
+              ></Follow>
+            ))}
+        </FollowUserWrapper>
       </Popup>
     </>
   );

@@ -22,14 +22,8 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { AuthContext } from "../../context/AuthContext";
 import { db, storage } from "../../firebase";
 
-export function ProfileEdit({
-  changePhoto,
-  uploadPhoto,
-  setOpenEdit,
-  profile,
-}) {
+export function ProfileEdit({ uploadPhoto, setOpenEdit, profile }) {
   const loader = useSelector((state) => state.loader.loader);
-  console.log(loader);
   const personalPhotoUpload = useSelector(
     (state) => state.profile.personalPhotoUpload
   );
@@ -43,14 +37,20 @@ export function ProfileEdit({
     setEditName(profile.displayName);
     setEditBio(profile.bio);
     setEditLocation(profile.location);
-    const editPersonalPhoto = document.querySelector(
-      ".profile-edit-personal-photo"
-    );
-    if (editPersonalPhoto) {
-      editPersonalPhoto.style.backgroundImage = `url(${profile.photoURL})`;
-      setReady(true);
-    }
+    setReady(true);
   }, []);
+  function changePhoto(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.addEventListener("load", () => {
+      const dataURL = reader.result;
+      const editPersonalPhoto = document.querySelector(
+        ".profile-edit-personal-photo"
+      );
+      editPersonalPhoto.style.backgroundImage = `url(${dataURL})`;
+    });
+  }
   const saveProfile = async () => {
     dispatch(changeLoaderState());
     await updateProfile(currentUser, {
@@ -83,6 +83,11 @@ export function ProfileEdit({
       });
     }
     dispatch(changeLoaderState());
+    const editHint = document.querySelector(".edit-hint");
+    editHint.style.display = "inline-block";
+    setTimeout(() => {
+      editHint.style.display = "none";
+    }, 3000);
   };
   const Camera = styled.img`
     position: relative;
@@ -114,8 +119,9 @@ export function ProfileEdit({
               </g>
             </svg>
           </div>
-          <span style={{ marginRight: "240px" }}>Edit Profile</span>
+          <span>Edit Profile</span>
           {loader && <Loader></Loader>}
+          <div className="edit-hint">更新成功!</div>
           <button
             type="button"
             onClick={() => {
@@ -126,7 +132,10 @@ export function ProfileEdit({
           </button>
         </div>
         <div className="profile-edit-cover-photo"></div>
-        <div className="profile-edit-personal-photo">
+        <div
+          className="profile-edit-personal-photo"
+          style={{ backgroundImage: `url(${profile.photoURL})` }}
+        >
           {ready ? null : <Skeleton />}
           <Camera src={camera} onClick={uploadPhoto} />
           <PhotoUpload

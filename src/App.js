@@ -30,6 +30,13 @@ export function App() {
       return children;
     }
   };
+  const ProtectedRouteLogin = ({ children }) => {
+    if (currentUser) {
+      return <Navigate to="/" />;
+    } else {
+      return children;
+    }
+  };
 
   return (
     <BrowserRouter>
@@ -43,7 +50,14 @@ export function App() {
             </ProtectedRoute>
           }
         ></Route>
-        <Route path="login" element={<Homepage />}></Route>
+        <Route
+          path="login"
+          element={
+            <ProtectedRouteLogin>
+              <Homepage />
+            </ProtectedRouteLogin>
+          }
+        ></Route>
       </Routes>
     </BrowserRouter>
   );

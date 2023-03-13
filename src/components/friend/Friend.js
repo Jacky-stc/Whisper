@@ -14,6 +14,7 @@ import "../../scss/friend.scss";
 import { UserSearch } from "./UserSearch";
 import blankProfile from "../../img/blankProfile.jpg";
 import { Recommend } from "./Recommend";
+import { async } from "@firebase/util";
 
 export function Friend() {
   const [value, setValue] = useState("");
@@ -73,9 +74,18 @@ export function Friend() {
     const getRecommend = async () => {
       const recommendList = [];
       const res = await getDocs(collection(db, "users"));
-      res.forEach((doc) =>
-        recommendList.push({ id: doc.id, data: doc.data() })
-      );
+      res.forEach((element) => {
+        const getFollower = async () => {
+          const follower = await getDoc(doc(db, "followers", element.id));
+          // console.log(follower.data());
+        };
+        recommendList.push({
+          id: element.id,
+          data: element.data(),
+          // follower: follower.data(),
+        });
+        getFollower();
+      });
       const randomedList = [];
       for (let i = 0; i < 3; i++) {
         let randomNum = Math.floor(
@@ -88,31 +98,10 @@ export function Friend() {
     };
     getRecommend();
   }, []);
-  console.log(recommend);
-  const Wrapper = styled.div`
-    width: 350px;
-    height: 120%;
-    border-left: 1px solid #8c969b;
-  `;
-  const SearchBar = styled.div`
-    z-index: 1;
-    position: relative;
-    box-sizing: border-box;
-    margin: 10px;
-    border-radius: 150px;
-    background-color: rgba(136, 136, 136, 0.3);
-    width: 100%;
-  `;
   const Icon = styled.div`
     display: inline-block;
     vertical-align: top;
     margin: 10px 0 0 20px;
-  `;
-  const Search = styled.input`
-    background: none;
-    outline: none;
-    border: none;
-    margin: 10px 0 0 0px;
   `;
   const RecommendWrapper = styled.div`
     box-sizing: border-box;
@@ -131,36 +120,6 @@ export function Friend() {
     line-height: 50px;
     color: #444;
   `;
-
-  const Photo1 = styled.div`
-    display: inline-block;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    background-image: url(${recommend[1]
-      ? recommend[1].data.photoURL
-        ? recommend[1].data.photoURL
-        : blankProfile
-      : null});
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  `;
-  const Photo2 = styled.div`
-    display: inline-block;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    background-image: url(${recommend[2]
-      ? recommend[2].data.photoURL
-        ? recommend[2].data.photoURL
-        : { blankProfile }
-      : null}});
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  `;
-
   const Result = styled.div`
     position: absolute;
     width: 100%;
@@ -230,13 +189,13 @@ export function Friend() {
           </Result>
         )}
       </div>
-      <RecommendWrapper>
+      <div className="recommend-wrapper">
         <Title>Recommend</Title>
         {recommend &&
           recommend.map((user) => (
             <Recommend key={user.id} user={user}></Recommend>
           ))}
-      </RecommendWrapper>
+      </div>
     </div>
   );
 }

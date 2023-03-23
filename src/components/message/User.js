@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import {
   collection,
-  doc,
   getDocs,
   onSnapshot,
   query,
@@ -16,7 +15,6 @@ import { db } from "../../firebase";
 export const User = ({ user }) => {
   const [unread, setUnread] = useState(null);
   const { currentUser } = useContext(AuthContext);
-  const { data } = useContext(ChatContext);
   useEffect(() => {
     let unreadList = [];
     const q = query(
@@ -45,9 +43,7 @@ export const User = ({ user }) => {
     width: 50px;
     height: 50px;
     background-color: #fff;
-    background-image: url(${user[1].userInfo.photoURL
-      ? user[1].userInfo.photoURL
-      : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"});
+    background-image: url(${user[1].userInfo.photoURL});
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

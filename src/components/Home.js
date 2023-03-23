@@ -1,27 +1,16 @@
 import React, { useContext, useEffect, useState } from "react";
 import "../scss/home.scss";
 import { Navbar } from "./Navbar";
-import { db, storage } from "../firebase";
+import { db } from "../firebase";
 import { Post } from "./post/Post";
 import { Friend } from "./friend/Friend";
 import { Message } from "./message/Message";
-import {
-  doc,
-  setDoc,
-  addDoc,
-  collection,
-  getDocs,
-  serverTimestamp,
-  query,
-  orderBy,
-  updateDoc,
-} from "firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { AuthContext } from "../context/AuthContext";
 import { Route, Routes } from "react-router-dom";
 import { Profile } from "./profile/Profile";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { getPostList } from "../store/postListSlice";
-import styled from "@emotion/styled";
 import { Footer } from "./Footer";
 import { Bookmark } from "./Bookmark";
 import { getMessaging, onMessage } from "firebase/messaging";
@@ -31,7 +20,6 @@ export function Home() {
   const { currentUser } = useContext(AuthContext);
   const [postIsLoading, setPostIsLoading] = useState(true);
   const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-  const postList = useSelector((state) => state.postList.postList);
   const dispatch = useDispatch();
   const messaging = getMessaging();
   onMessage(messaging, (payload) => {
@@ -60,11 +48,6 @@ export function Home() {
       getPost();
     }
   }, [currentUser.uid]);
-  const Wrapper = styled.div`
-    width: 100%;
-    height: 100%;
-    display: flex;
-  `;
   return (
     <main>
       <div className="main-wrapper">

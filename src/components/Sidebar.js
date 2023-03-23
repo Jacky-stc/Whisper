@@ -1,10 +1,10 @@
 import styled from "@emotion/styled";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import "../scss/sidebar.scss";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { showLogOut, closeLogOut } from "../store/portalSlice";
+import { useDispatch } from "react-redux";
+import { showLogOut } from "../store/portalSlice";
 
 export const Sidebar = () => {
   const { currentUser } = useContext(AuthContext);

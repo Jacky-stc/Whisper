@@ -12,12 +12,10 @@ import React, { useContext, useRef, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/MessageContext";
 import { db } from "../../firebase";
-import * as Icon from "../icon/icon";
 
 export const Input = () => {
   const { currentUser } = useContext(AuthContext);
   const { data } = useContext(ChatContext);
-  const [img, setImg] = useState(null);
   const ref = useRef();
   const handleSend = async () => {
     const textMessage = ref.current.value;
@@ -26,7 +24,6 @@ export const Input = () => {
         author: currentUser.uid,
         photoURL: currentUser.photoURL,
         message: textMessage,
-        img: img,
         date: serverTimestamp(),
         read: false,
       });
@@ -64,25 +61,6 @@ export const Input = () => {
       console.error(error);
     }
   };
-
-  const InputWrapper = styled.div`
-    position: absolute;
-    width: 500px;
-    left: 15px;
-    bottom: 15px;
-    border-radius: 12px;
-    border: 1px solid #666;
-    background-color: #e8ccac;
-    @media (max-width: 1020px) {
-      width: 95%;
-    }
-    @media (max-width: 500px) {
-      bottom: 5%;
-      @media (max-height: 900px) {
-        bottom: 7%;
-      }
-    }
-  `;
   const Input = styled.input`
     box-sizing: border-box;
     padding: 20px;
@@ -110,33 +88,8 @@ export const Input = () => {
       filter: brightness(0.8);
     }
   `;
-  const IconWrapper = styled.div`
-    position: relative;
-    display: inline-block;
-    width: 36px;
-    height: 36px;
-    left: 10px;
-    border-radius: 50%;
-    vertical-align: bottom;
-    cursor: pointer;
-    svg {
-      transform: translateY(4px);
-    }
-    &:hover {
-      background-color: #999;
-    }
-  `;
-  const ImageWrapper = styled.div`
-    width: 100px;
-    height: 60px;
-    background-color: #ddd;
-    border-radius: 12px;
-  `;
   return (
     <div className="message-input-wrapper">
-      {/* <IconWrapper>
-        <Icon.postImageIcon></Icon.postImageIcon>
-      </IconWrapper> */}
       <Input
         placeholder="Start a new message"
         ref={ref}
@@ -147,7 +100,6 @@ export const Input = () => {
         }}
       ></Input>
       <Send onClick={handleSend}>Send</Send>
-      <input type={"file"} style={{ display: "none" }}></input>
     </div>
   );
 };

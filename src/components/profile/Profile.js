@@ -145,9 +145,7 @@ export function Profile() {
     height: 130px;
     border-radius: 50%;
     border: 5px solid #e8dfd2;
-    background-image: url(${profile && profile.photoURL
-      ? profile.photoURL
-      : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"});
+    background-image: url(${profile && profile.photoURL});
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

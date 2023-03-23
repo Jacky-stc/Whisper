@@ -10,7 +10,6 @@ import React, { useContext, useEffect, useRef } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/MessageContext";
 import { db } from "../../firebase";
-import { getTimeAgo } from "../post/PostElement";
 
 export const Chat = ({ chat }) => {
   const { currentUser } = useContext(AuthContext);

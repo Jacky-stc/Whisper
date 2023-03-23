@@ -32,9 +32,6 @@
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      // background-image: url(${currentUser.photoURL
-      //   ? currentUser.photoURL
-      //   : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"});
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -285,8 +282,8 @@ input[type="range"]::-webkit-slider-thumb {
   position: relative;
   height: 16px;
   width: 16px;
-  margin-top: -6px; /* 會受到寬高影響定位，需微調 */
-  background-color: white; /* 我的目標樣式 */
+  margin-top: -6px;
+  background-color: white;
   border-radius: 50%;
   border: 1px solid black;
   &:hover {

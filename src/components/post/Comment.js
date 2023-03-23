@@ -9,14 +9,6 @@ export const Comment = ({ data }) => {
   useEffect(() => {
     ref.current?.scrollIntoView({ bahavior: "smooth" });
   }, [data]);
-  const Wrapper = styled.div`
-    width: 100%;
-    height: 60px;
-    padding-top: 10px;
-    padding-bottom: 15px;
-    margin-top: 10px;
-    border-bottom: 1px solid #999;
-  `;
   const Profile = styled.div`
     display: inline-block;
     width: 40px;

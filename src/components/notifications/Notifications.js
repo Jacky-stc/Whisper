@@ -1,11 +1,9 @@
 import {
   collection,
-  doc,
   getDocs,
   orderBy,
   query,
   updateDoc,
-  where,
 } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";

@@ -6,13 +6,12 @@ import { AuthContext } from "../context/AuthContext";
 import { auth, db } from "../firebase";
 import Popup from "./popup/Popup";
 import whisper from "../img/whisper.jpg";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { showLogOut, closeLogOut } from "../store/portalSlice";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 
 export function Navbar() {
   const { currentUser } = useContext(AuthContext);
-  const logOutOpen = useSelector((state) => state.portal.logOutOpen);
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [not, setNot] = useState(0);

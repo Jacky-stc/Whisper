@@ -118,7 +118,6 @@ export function Homepage() {
           "auth/weak-password": "密碼不能小於6位數",
         };
         setRegError(errorList[errorCode]);
-        const errorMessage = error.message;
       });
   }
   function handleSignin(e) {
@@ -159,40 +158,6 @@ export function Homepage() {
   const Title = styled.div`
     font-size: 72px;
   `;
-  const Form = styled.div`
-    width: 400px;
-    height: auto;
-    position: absolute;
-    left: 100%;
-    transform: translateX(-110%);
-    margin-right: 40px;
-    top: 20%;
-    border: 1px solid #888;
-    border-radius: 8px;
-    justify-content: center;
-    background-color: #c7b59c;
-    font-family: "Cormorant Garamond", serif;
-    box-shadow: 0px 0px 10px #555;
-    display: flex;
-    p {
-      text-align: center;
-      a {
-        cursor: pointer;
-        &:hover {
-          text-decoration: 1px solid underline;
-        }
-      }
-    }
-    @media (max-width: 1020px) {
-      left: 0%;
-      transform: translateX(10%);
-    }
-    @media (max-width: 500px) {
-      left: 5%;
-      width: 90%;
-      transform: translateX(0%);
-    }
-  `;
   const LoaderWrapper = styled.div`
     display: block;
     margin: 0 auto;
@@ -208,37 +173,6 @@ export function Homepage() {
     text-align: center;
     font-size: 16px;
     color: green;
-  `;
-  const Introduce = styled.div`
-    width: 100%;
-    height: 80%;
-    background-color: #ebebeb;
-  `;
-  const Introduce2 = styled.div`
-    width: 100%;
-    height: 80%;
-    background-color: #e8dfd2;
-  `;
-  const Wrapper = styled.div`
-    position: relative;
-    top: 15%;
-    width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    visibility: hidden;
-    justify-content: space-around;
-    transition: 0.8s;
-    transform: translateY(-20px);
-    @media (max-width: 1200px) {
-      width: 90%;
-    }
-    @media (max-width: 768px) {
-      display: block;
-      top: 8%;
-    }
-    @media (max-height: 720px) {
-      top: 5%;
-    }
   `;
   const ImageOuter = styled.div`
     display: flex;
@@ -276,21 +210,6 @@ export function Homepage() {
   `;
   const Content = styled.div`
     line-height: 40px;
-  `;
-  const Header = styled.div`
-    display: none;
-    position: absolute;
-    width: 100%;
-    height: 80px;
-    align-items: center;
-    padding: 30px;
-    box-sizing: border-box;
-    background-color: rgb(232 204 172 / 70%);
-    box-shadow: 0px 0px 5px 5px #666;
-    z-index: 5;
-    @media (max-width: 1020px) {
-      display: flex;
-    }
   `;
   const Logo = styled.div`
     display: inline-block;

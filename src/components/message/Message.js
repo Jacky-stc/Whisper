@@ -63,14 +63,6 @@ export function Message() {
   useEffect(() => {
     chatRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatContent]);
-  const Wrapper = styled.div`
-    flex: 1;
-    margin-left: 250px;
-    overflow-y: hidden;
-    @media (max-width: 1200px) : {
-      margin-left: 200px;
-    }
-  `;
   const Title = styled.div`
     width: 100%;
     height: 60px;

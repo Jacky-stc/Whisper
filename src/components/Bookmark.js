@@ -1,12 +1,5 @@
 import styled from "@emotion/styled";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useSelector } from "react-redux";

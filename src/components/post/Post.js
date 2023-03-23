@@ -12,7 +12,6 @@ import {
   addDoc,
   collection,
   doc,
-  onSnapshot,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -326,9 +325,7 @@ export function Post({ postIsLoading }) {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-image: url(${currentUser.photoURL
-      ? currentUser.photoURL
-      : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"});
+    background-image: url(${currentUser.photoURL});
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -361,7 +358,7 @@ export function Post({ postIsLoading }) {
       const image = new Image();
       image.addEventListener("load", () => resolve(image));
       image.addEventListener("error", (error) => reject(error));
-      image.setAttribute("crossOrigin", "anonymous"); // needed to avoid cross-origin issues on CodeSandbox
+      image.setAttribute("crossOrigin", "anonymous");
       image.src = url;
     });
   const dataURLtofile = (dataURL, fileName) => {

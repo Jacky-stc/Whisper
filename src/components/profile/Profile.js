@@ -208,6 +208,13 @@ export function Profile() {
       updateDoc(doc(db, "followers", userId), {
         follower: arrayUnion(currentUser.uid),
       });
+      addDoc(collection(db, "users", userId, "notifications"), {
+        action: "follow",
+        user: currentUser.uid,
+        content: "",
+        state: "unread",
+        timestamp: serverTimestamp(),
+      });
     }
   }
   const FollowUserWrapper = styled.div`

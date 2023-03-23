@@ -17,7 +17,6 @@ export const User = ({ user }) => {
   const [unread, setUnread] = useState(null);
   const { currentUser } = useContext(AuthContext);
   const { data } = useContext(ChatContext);
-  console.log(data);
   useEffect(() => {
     let unreadList = [];
     const q = query(

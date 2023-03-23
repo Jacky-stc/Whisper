@@ -1,20 +1,32 @@
 import styled from "@emotion/styled";
 import { signOut } from "firebase/auth";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import Popup from "./popup/Popup";
 import whisper from "../img/whisper.jpg";
-import { Sidebar } from "./Sidebar";
 import { useDispatch, useSelector } from "react-redux";
 import { showLogOut, closeLogOut } from "../store/portalSlice";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 
 export function Navbar() {
   const { currentUser } = useContext(AuthContext);
   const logOutOpen = useSelector((state) => state.portal.logOutOpen);
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
+  const [not, setNot] = useState(0);
+  const q = query(
+    collection(db, "users", currentUser.uid, "notifications"),
+    where("state", "==", "unread")
+  );
+  useEffect(() => {
+    const unsub = onSnapshot(q, (doc) => {
+      let notList = [];
+      doc.forEach((element) => notList.push(element.data()));
+      setNot(notList.length);
+    });
+  }, []);
   const LogoutBlock = styled.div`
     z-index: 5;
     width: 320px;
@@ -85,6 +97,7 @@ export function Navbar() {
     box-sizing: border-box;
     padding: 10px 20px;
     border-radius: 200px;
+    position: relative;
     &:hover {
       background-color: #e8ccac;
       filter: brightness(0.8);
@@ -106,6 +119,18 @@ export function Navbar() {
       display: none;
     }
   `;
+  const NotificationHint = styled.div`
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    border-radius: 50%;
+    background-color: red;
+    top: 4px;
+    left: 30px;
+    font-size: 14px;
+    color: #fff;
+    text-align: center;
+  `;
   return (
     <header>
       <div className="navbar">
@@ -118,16 +143,6 @@ export function Navbar() {
                 </g>
               </svg>
               <Tag>Home</Tag>
-            </Wrapper>
-          </Link>
-          <Link>
-            <Wrapper>
-              <svg>
-                <g>
-                  <path d="M10.09 3.098L9.72 7h5.99l.39-4.089 1.99.187L17.72 7h3.78v2h-3.97l-.56 6h3.53v2h-3.72l-.38 4.089-1.99-.187.36-3.902H8.78l-.38 4.089-1.99-.187L6.77 17H2.5v-2h4.46l.56-6H3.5V7h4.21l.39-4.089 1.99.187zM14.96 15l.56-6H9.53l-.56 6h5.99z"></path>
-                </g>
-              </svg>
-              <Tag>Explore</Tag>
             </Wrapper>
           </Link>
           <Link to={`/${currentUser.uid}`}>
@@ -150,9 +165,9 @@ export function Navbar() {
               <Tag>Messages</Tag>
             </Wrapper>
           </Link>
-
-          <Link>
+          <Link to={"/notifications"}>
             <Wrapper>
+              {not !== 0 && <NotificationHint>{not}</NotificationHint>}
               <svg>
                 <g>
                   <path d="M19.993 9.042C19.48 5.017 16.054 2 11.996 2s-7.49 3.021-7.999 7.051L2.866 18H7.1c.463 2.282 2.481 4 4.9 4s4.437-1.718 4.9-4h4.236l-1.143-8.958zM12 20c-1.306 0-2.417-.835-2.829-2h5.658c-.412 1.165-1.523 2-2.829 2zm-6.866-4l.847-6.698C6.364 6.272 8.941 4 11.996 4s5.627 2.268 6.013 5.295L18.864 16H5.134z"></path>

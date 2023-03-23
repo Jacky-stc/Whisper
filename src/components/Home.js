@@ -25,6 +25,7 @@ import styled from "@emotion/styled";
 import { Footer } from "./Footer";
 import { Bookmark } from "./Bookmark";
 import { getMessaging, onMessage } from "firebase/messaging";
+import { Notifications } from "./notifications/Notifications";
 
 export function Home() {
   const { currentUser } = useContext(AuthContext);
@@ -66,7 +67,7 @@ export function Home() {
   `;
   return (
     <main>
-      <Wrapper>
+      <div className="main-wrapper">
         <Navbar />
         <Routes>
           <Route
@@ -96,10 +97,19 @@ export function Home() {
               </>
             }
           ></Route>
+          <Route
+            path="/notifications"
+            element={
+              <>
+                <Notifications />
+                <Friend />
+              </>
+            }
+          ></Route>
           <Route path="/messages" element={<Message />}></Route>
         </Routes>
         <Footer></Footer>
-      </Wrapper>
+      </div>
     </main>
   );
 }

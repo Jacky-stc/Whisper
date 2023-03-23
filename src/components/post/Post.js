@@ -56,7 +56,6 @@ export function Post({ postIsLoading }) {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState();
   const imageRef = useRef();
-  console.log(crop);
   window.addEventListener(
     "click",
     () => {

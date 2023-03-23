@@ -11,6 +11,7 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
 } from "firebase/firestore";
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
@@ -114,6 +115,13 @@ export const PostElement = React.memo(({ post }) => {
       await updateDoc(doc(db, "likes", post.id), {
         likeAccount: arrayUnion(currentUser.uid),
       });
+      await addDoc(collection(db, "users", post.author.uid, "notifications"), {
+        action: "like",
+        user: currentUser.uid,
+        content: post.content,
+        state: "unread",
+        timestamp: serverTimestamp(),
+      });
     }
   };
   const collectPost = async () => {
@@ -162,6 +170,16 @@ export const PostElement = React.memo(({ post }) => {
     const re = /(.|\s)*\S(.|\s)*/;
     if (commentRef.current.value.match(re)?.length > 0) {
       try {
+        await addDoc(
+          collection(db, "users", post.author.uid, "notifications"),
+          {
+            action: "comment",
+            user: currentUser.uid,
+            content: commentRef.current.value,
+            state: "unread",
+            timestamp: serverTimestamp(),
+          }
+        );
         await addDoc(collection(db, "comments", post.id, "comment"), {
           timestamp: serverTimestamp(),
           author: {

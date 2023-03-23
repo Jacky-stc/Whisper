@@ -1,20 +1,10 @@
 import styled from "@emotion/styled";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  onSnapshot,
-  query,
-  where,
-} from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { db } from "../../firebase";
 import "../../scss/friend.scss";
 import { UserSearch } from "./UserSearch";
-import blankProfile from "../../img/blankProfile.jpg";
 import { Recommend } from "./Recommend";
-import { async } from "@firebase/util";
 
 export function Friend() {
   const [value, setValue] = useState("");
@@ -75,16 +65,10 @@ export function Friend() {
       const recommendList = [];
       const res = await getDocs(collection(db, "users"));
       res.forEach((element) => {
-        const getFollower = async () => {
-          const follower = await getDoc(doc(db, "followers", element.id));
-          // console.log(follower.data());
-        };
         recommendList.push({
           id: element.id,
           data: element.data(),
-          // follower: follower.data(),
         });
-        getFollower();
       });
       const randomedList = [];
       for (let i = 0; i < 3; i++) {
@@ -102,14 +86,6 @@ export function Friend() {
     display: inline-block;
     vertical-align: top;
     margin: 10px 0 0 20px;
-  `;
-  const RecommendWrapper = styled.div`
-    box-sizing: border-box;
-    margin: 18px 10px;
-    border-radius: 20px;
-    width: 100%;
-    height: 400px;
-    background-color: rgba(136, 136, 136, 0.3);
   `;
   const Title = styled.div`
     font-size: 26px;

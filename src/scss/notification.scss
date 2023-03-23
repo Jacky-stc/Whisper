@@ -1,0 +1,14 @@
+.notifications {
+  border-right: 1px solid #8c969b;
+}
+.notification {
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
+  padding: 20px;
+  //   border-right: 1px solid #8c969b;
+  border-bottom: 1px solid #8c969b;
+  &:hover {
+    background-color: rgba(136, 136, 136, 0.4);
+  }
+}
